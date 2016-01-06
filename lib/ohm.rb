@@ -696,6 +696,10 @@ module Ohm
   #   SADD User:1:posts 1
   #
   class Model
+    class << self
+      alias_method :key_string, :name
+    end
+
     def self.redis=(redis)
       @redis = redis
     end
@@ -730,7 +734,7 @@ module Ohm
     #   http://github.com/soveran/nido
     #
     def self.key
-      @key ||= Nido.new(self.name)
+      @key ||= Nido.new(self.key_string)
     end
 
     # Retrieve a record by ID.
@@ -1340,7 +1344,7 @@ module Ohm
       model.uniques.each { |field| uniques[field] = send(field) }
 
       features = {
-        "name" => model.name
+        "name" => model.key_string
       }
 
       if defined?(@id)
@@ -1370,7 +1374,7 @@ module Ohm
       model.uniques.each { |field| uniques[field] = send(field) }
 
       script(LUA_DELETE, 0,
-        { "name" => model.name,
+        { "name" => model.key_string,
           "id" => id,
           "key" => key
         }.to_msgpack,
